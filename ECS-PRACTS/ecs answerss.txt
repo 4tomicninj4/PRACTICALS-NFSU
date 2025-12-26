@@ -1,0 +1,373 @@
+Senerio 2:
+
+Q1. Identify services starting automatically at boot
+systemctl list-unit-files --type=service
+
+systemctl list-units --type=service --state=running
+
+systemctl is-enabled sshd
+
+Q2. Analyse authentication logs for failed logins
+Ubuntu / Debian
+grep "Failed password" /var/log/auth.log
+
+RHEL / CentOS
+grep "Failed password" /var/log/secure
+
+lastb
+
+Q3. Restrict unused ports
+List open ports
+ss -tuln
+
+
+or
+
+netstat -tuln
+
+Using UFW
+ufw enable
+ufw deny 21
+ufw deny 23
+
+Using iptables
+iptables -A INPUT -p tcp --dport 21 -j DROP
+iptables -A INPUT -p tcp --dport 23 -j DROP
+
+Q4. Log monitoring for attack detection
+tail -f /var/log/auth.log
+
+
+or
+
+journalctl -f
+
+Q5. Hardening measures
+Disable root SSH login
+nano /etc/ssh/sshd_config
+
+PermitRootLogin no
+
+systemctl restart sshd
+
+Install Fail2Ban
+apt install fail2ban -y
+
+
+or
+
+yum install fail2ban -y
+
+systemctl enable fail2ban
+systemctl start fail2ban
+
+
+
+
+Senerio : 4
+
+
+Q1. Capture live network traffic
+tcpdump -i eth0
+
+tcpdump -i eth0 -n
+
+wireshark
+
+Q2. Identify scanning / flooding / normal traffic
+Capture only SYN packets (scan detection)
+tcpdump -i eth0 'tcp[tcpflags] & tcp-syn != 0 and tcp[tcpflags] & tcp-ack == 0'
+
+Check traffic rate (possible flooding)
+iftop
+
+nload
+
+Q3. Identify source and destination of suspicious packets
+tcpdump -i eth0 -nn
+
+tcpdump -i eth0 src host <IP>
+
+tcpdump -i eth0 dst host <IP>
+
+ss -ant
+
+Q4. Check impact on availability (connections & load)
+ss -s
+
+netstat -ant | wc -l
+
+uptime
+
+Q5. Preventive controls
+Block scanning IP
+iptables -A INPUT -s <IP> -j DROP
+
+Limit connections (rate limiting)
+iptables -A INPUT -p tcp --syn -m limit --limit 1/s -j ACCEPT
+
+Enable firewall
+ufw enable
+
+Install IDS
+apt install snort -y
+
+
+or
+
+yum install snort -y
+
+
+Senerio 10 :
+
+Scenario 10 – Nmap Reconnaissance (Commands Only)
+Basic host discovery (no port scan)
+nmap -sn 192.168.1.0/24
+
+List open TCP ports (default safe scan)
+nmap 192.168.1.10
+
+nmap 192.168.1.0/24
+
+Scan specific common ports (policy review)
+nmap -p 22,80,443 192.168.1.0/24
+
+Service detection (observational)
+nmap -sV 192.168.1.10
+
+nmap -sV 192.168.1.0/24
+
+List all open ports
+nmap -p- 192.168.1.10
+
+Disable DNS resolution (faster, cleaner output)
+nmap -n 192.168.1.0/24
+
+Save results for policy review
+nmap -sV 192.168.1.0/24 -oN nmap_report.txt
+
+Scan timing (non-aggressive)
+nmap -T2 192.168.1.0/24
+
+Scan with no OS detection / no scripts
+nmap -sS -Pn 192.168.1.10
+
+
+Scenario 10 – Reconnaissance-Level Network Exposure Assessment Using Nmap
+
+You are assigned as a network security assessor to evaluate possible unnecessary exposure of internal services. There is no evidence of compromise, and management has strictly authorized only observational reconnaissance, not exploitation or disruption. Nmap is used purely to support security policy decisions.
+
+Q1. Why Nmap-based scanning, even without exploitation, is a powerful security decision-support activity rather than an attack
+
+Nmap scanning, when used without exploitation, is a visibility and assessment activity, not an attack. It helps security teams understand what services are exposed, where they are exposed, and how broadly.
+
+This information supports decision-making by:
+
+Revealing the organization’s attack surface
+
+Identifying unnecessary or forgotten services
+
+Highlighting deviations from security policy
+
+No payloads, exploits, or service interruptions are involved. Instead of causing harm, Nmap provides situational awareness, which is essential for risk management, governance, and compliance. Therefore, it functions as a preventive security tool, not an offensive one.
+
+Q2. Using Nmap results, how to logically differentiate between essential services and policy violations without knowing business context
+
+Even without business context, Nmap results can be logically evaluated using security best-practice assumptions.
+
+Services that are:
+
+Common and expected (e.g., HTTPS, DNS)
+
+Limited to a small number of hosts
+
+Consistently configured across systems
+
+can be considered potentially essential.
+
+Services that:
+
+Appear on many systems unnecessarily
+
+Run on uncommon or legacy ports
+
+Are inconsistent with host roles
+
+Use insecure or deprecated protocols
+
+can be flagged as policy violations or review candidates.
+
+This approach does not assume malicious intent; it simply identifies excess exposure that violates the principle of least privilege and minimal service exposure.
+
+Q3. Why multiple open ports across several hosts represent a risk condition
+
+Multiple open ports across many hosts indicate a large attack surface, even if no active attack is detected.
+
+Each open port:
+
+Represents a running service
+
+Increases the chance of misconfiguration
+
+May become vulnerable in the future due to missing patches
+
+Attackers typically begin with reconnaissance. A network exposing many services gives attackers more opportunities to exploit weaknesses later. Therefore, this finding represents a latent or potential risk, not a breach, but one that weakens the organization’s security posture.
+
+Q4. How service version detection influences patch management and risk prioritization without confirming vulnerability
+
+Service version detection identifies what software and versions are running, not whether they are exploitable.
+
+This information helps by:
+
+Identifying outdated or end-of-life software
+
+Supporting patch prioritization decisions
+
+Aligning systems with vendor support lifecycles
+
+Highlighting systems that require early review
+
+Rather than confirming a vulnerability, version detection enables proactive risk assessment, allowing security teams to prioritize updates and reduce exposure before issues arise.
+
+
+
+
+Scenario: 11
+
+Scenario 11 – iptables Rules to Harden Network Access
+Assumptions
+
+Trusted admin network: 192.168.10.0/24
+
+SSH port: 22
+
+HTTP port: 80
+
+HTTPS port: 443
+
+Step 1: Flush existing rules
+iptables -F
+iptables -X
+
+Step 2: Set default policies
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+
+Step 3: Allow loopback interface
+iptables -A INPUT -i lo -j ACCEPT
+
+Step 4: Allow established connections
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+Step 5: Allow SSH only from trusted network
+iptables -A INPUT -p tcp --dport 22 -s 192.168.10.0/24 -m conntrack --ctstate NEW -j ACCEPT
+
+Step 6: Allow HTTP/HTTPS from all users
+iptables -A INPUT -p tcp --dport 80 -m conntrack --ctstate NEW -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -m conntrack --ctstate NEW -j ACCEPT
+
+Step 7: Block all other unsolicited inbound traffic
+
+Already handled by default DROP policy.
+
+Optional: Save rules permanently
+Debian/Ubuntu
+iptables-save > /etc/iptables/rules.v4
+
+RHEL/CentOS
+service iptables save
+
+Security Justification
+
+SSH is restricted to trusted admin network → prevents unauthorized remote login
+
+HTTP/HTTPS is public → allows web application access
+
+Default DROP → minimizes exposure, blocks all other unsolicited traffic
+
+Stateful filtering ensures existing connections continue smoothly
+
+
+Senerio 13:
+
+Scenario 13 – Linux Firewall Configuration for SSH Only
+
+A Linux computer is connected to a network. The admin wants to allow only SSH access, block all other incoming connections, and allow normal outgoing connections. This can be achieved using iptables.
+
+Q1. Why is a firewall needed on a Linux system?
+
+A firewall controls incoming and outgoing network traffic based on defined security rules.
+
+Protects the system from unauthorized access
+
+Prevents attacks on exposed services
+
+Reduces the system’s attack surface
+
+Ensures network policies are enforced
+
+Q2. Default policy for incoming traffic
+
+To make the system secure, the default policy for incoming traffic should be DROP.
+
+This blocks all unsolicited incoming connections.
+
+Only explicitly allowed services (like SSH) can connect.
+
+Q3. Rule to allow SSH (port 22) access
+Step 1: Flush existing rules
+iptables -F
+iptables -X
+
+Step 2: Set default policies
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+
+Step 3: Allow loopback interface
+iptables -A INPUT -i lo -j ACCEPT
+
+Step 4: Allow established/related connections
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+Step 5: Allow SSH (port 22)
+iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
+
+
+Only SSH connections from any host are allowed.
+
+All other unsolicited connections are blocked by default policy.
+
+Q4. Why should established connections be allowed?
+
+Ensures ongoing sessions (like SSH, HTTP requests initiated by the system) are not interrupted.
+
+Allows replies to outgoing connections to return successfully.
+
+Without this rule, even legitimate responses to initiated connections could be dropped.
+
+Q5. What happens if all incoming traffic is allowed?
+
+System becomes fully exposed to the network.
+
+Unauthorized users could access any service.
+
+Increases the risk of malware infection, data theft, or system compromise.
+
+Breaks the principle of least privilege and makes the firewall ineffective.
+
+Summary of iptables Setup (SSH-Only Firewall)
+iptables -F
+iptables -X
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
+
+
+✅ Firewall allows only SSH, blocks all other incoming traffic, allows normal outgoing traffic.
+
+
