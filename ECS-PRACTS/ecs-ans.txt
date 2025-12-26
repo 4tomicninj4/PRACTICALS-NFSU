@@ -1,0 +1,594 @@
+Below are **complete, exam-ready, step-by-step detailed answers for ALL scenarios and questions**, written exactly in the style expected for **NFSU M.Sc. Cyber Security LPW**.
+You can directly **copy–paste into MS Word**, add screenshots/PoC where required, and submit.
+
+I’ve kept the language **theoretical + practical**, with **clear justification**, **commands**, and **security reasoning**.
+
+---
+
+# ✅ SCENARIO 1 – Windows 10 System Investigation & Hardening
+
+## Q1. Identify two suspicious processes or services
+
+### Step 1: Open Task Manager / Services
+
+* Press **Ctrl + Shift + Esc**
+* Go to **Processes** and **Services** tabs
+
+### Step 2: Identify suspicious behavior
+
+Examples:
+
+1. **Unknown executable**
+
+   * Process name: `svch0st.exe` (note: legitimate is `svchost.exe`)
+   * Location: Running from `C:\Users\Public\` instead of `C:\Windows\System32`
+
+2. **Suspicious service**
+
+   * Random name (e.g., `WinUpdateService123`)
+   * Startup type: **Automatic**
+   * No description or vendor info
+
+### Step 3: Why suspicious?
+
+* Legitimate system services:
+
+  * Have **Microsoft Corporation** as publisher
+  * Run from **System32**
+* Unknown names + wrong path = **possible malware persistence**
+
+---
+
+## Q2. Check system patch status
+
+### Step 1: Check Windows Update
+
+* Settings → Update & Security → Windows Update
+
+### Step 2: Identify missing updates
+
+* Status: “Updates paused” or “Last update: months ago”
+* Use PowerShell:
+
+```powershell
+Get-HotFix
+```
+
+### Step 3: Security risk
+
+* Missing patches allow:
+
+  * Privilege escalation
+  * Remote code execution
+  * Known exploits (EternalBlue, PrintNightmare)
+
+➡ **Unpatched systems are primary malware entry points**
+
+---
+
+## Q3. Examine NTFS permissions
+
+### Step 1: Check permissions
+
+* Right-click folder → Properties → Security → Advanced
+
+### Step 2: Identify misconfiguration
+
+* “Everyone” or “Users” group has:
+
+  * **Modify / Full Control** on sensitive folder
+
+### Step 3: Correct permissions
+
+| Group          | Permission          |
+| -------------- | ------------------- |
+| Administrators | Full Control        |
+| System         | Full Control        |
+| Users          | Read & Execute only |
+
+➡ Principle of **Least Privilege** applied
+
+---
+
+## Q4. Verify BitLocker
+
+### Step 1: Check status
+
+* Control Panel → BitLocker Drive Encryption
+* Or:
+
+```powershell
+manage-bde -status
+```
+
+### Step 2: Enable BitLocker (if disabled)
+
+1. Turn on BitLocker
+2. Choose TPM / password
+3. Save recovery key
+4. Encrypt entire drive
+
+### Step 3: Importance
+
+* Protects data if:
+
+  * System stolen
+  * Disk removed
+* Prevents offline access to sensitive files
+
+---
+
+## Q5. Apply Local Group Policy
+
+### Policy Applied:
+
+**Disable Automatic Updates being turned off**
+
+### Steps:
+
+1. `gpedit.msc`
+2. Computer Configuration → Administrative Templates
+3. Windows Update → Configure Automatic Updates → Enabled
+
+### Justification:
+
+* Ensures continuous patching
+* Prevents attackers disabling updates
+
+---
+
+# ✅ SCENARIO 2 – Linux Server Security
+
+## Q1. Identify auto-start services
+
+```bash
+systemctl list-unit-files --type=service | grep enabled
+```
+
+### Justification
+
+* Required: sshd, cron
+* Unnecessary: ftp, telnet, cups
+
+➡ Disable unused services to reduce attack surface
+
+---
+
+## Q2. Analyse authentication logs
+
+```bash
+cat /var/log/auth.log | grep "Failed password"
+```
+
+### Indicators:
+
+* Repeated failures
+* Same IP address
+* Possible brute force attempt
+
+---
+
+## Q3. Restrict unused ports
+
+```bash
+ss -tuln
+```
+
+### Close unused ports:
+
+```bash
+ufw deny <port>
+```
+
+### Impact:
+
+* Prevents unauthorized access
+* Reduces exploitation opportunities
+
+---
+
+## Q4. Log monitoring command
+
+```bash
+tail -f /var/log/auth.log
+```
+
+### Benefit:
+
+* Real-time attack detection
+* Early incident response
+
+---
+
+## Q5. Two hardening measures
+
+1. Disable root SSH login
+2. Enable fail2ban
+
+---
+
+# ✅ SCENARIO 3 – Cyber Warfare Analysis
+
+## Q1. Cyber Warfare or Information Warfare?
+
+✔ **Both**
+
+* Website defacement → Cyber Warfare
+* Panic campaigns → Information Warfare
+
+---
+
+## Q2. Tactical vs Operational
+
+| Activity           | Type        |
+| ------------------ | ----------- |
+| Website defacement | Tactical    |
+| Network outages    | Operational |
+| Social panic       | Operational |
+
+---
+
+## Q3. Digital PSYOPS
+
+* Fake news
+* Misinformation
+* Emotional manipulation via social media
+
+---
+
+## Q4. Defensive strategies
+
+1. National CERT coordination
+2. Public communication & counter-narratives
+
+---
+
+## Q5. Information Assurance role
+
+* Ensures integrity
+* Restores trust
+* Validates official communication
+
+---
+
+# ✅ SCENARIO 4 – Network Reconnaissance
+
+## Q1. Capture traffic
+
+```bash
+tcpdump -i eth0
+```
+
+### Abnormal patterns:
+
+* Excessive SYN packets
+* Repeated ICMP
+
+---
+
+## Q2. Traffic type
+
+* SYN flood → scanning
+* High packets/sec → flooding
+
+---
+
+## Q3. Identify source/destination
+
+```bash
+tcpdump -n
+```
+
+---
+
+## Q4. Impact
+
+* Bandwidth exhaustion
+* Service degradation
+
+---
+
+## Q5. Preventive controls
+
+1. IDS/IPS
+2. Rate limiting
+
+---
+
+# ✅ SCENARIO 5 – Election Interference
+
+## Q1. Cyber vs Information Ops
+
+* Defacement → Cyber Warfare
+* Fake advisories → Info Ops
+
+---
+
+## Q2. Attacker objective
+
+* Destabilization
+* Loss of public trust
+
+---
+
+## Q3. Classification
+
+| Action     | Type          |
+| ---------- | ------------- |
+| Fake news  | Psychological |
+| Defacement | Technical     |
+
+---
+
+## Q4. Non-technical controls
+
+1. Public awareness campaigns
+2. Media verification channels
+
+---
+
+## Q5. Information Superiority
+
+* Accurate information dominance
+* Faster truth dissemination
+
+---
+
+# ✅ SCENARIO 6 – SOC Correlation
+
+## Q1. Classification
+
+✔ **Security weakness**
+
+* No breach confirmed
+* Indicators show poor hygiene
+
+---
+
+## Q2. Windows misconfigurations
+
+* Delayed updates
+* Weak policies
+* Excess privileges
+
+---
+
+## Q3. Log growth risk
+
+* Disk exhaustion
+* Hidden attacks
+* Missed alerts
+
+---
+
+## Q4. Network-level cause
+
+* Misconfigured scripts
+* Password retries
+* Monitoring tools
+
+---
+
+## Q5. Corrective actions
+
+| Layer   | Action          |
+| ------- | --------------- |
+| Windows | Enforce updates |
+| Linux   | Log rotation    |
+| Network | Rate limiting   |
+
+---
+
+# ✅ SCENARIO 7 – No Incidents Fallacy
+
+## Q1. Assessment
+
+❌ **False sense of security**
+
+* Absence ≠ protection
+
+---
+
+## Q2. Windows policy risks
+
+* Shared credentials
+* No rotation
+  ➡ Increases lateral movement risk
+
+---
+
+## Q3. Linux patch risk
+
+* Vulnerabilities accumulate
+* Exploit window increases
+
+---
+
+## Q4. Network service exposure
+
+* Larger attack surface
+* More reconnaissance data
+
+---
+
+# ✅ SCENARIO 8 – Zero Incident Myth
+
+## Q1. Future risk?
+
+❌ Past stability ≠ future security
+
+---
+
+## Q2. Policy blind spots
+
+1. No incident response review
+2. Outdated threat models
+
+---
+
+## Q3. Human behaviour
+
+* Password reuse
+* Social engineering success
+
+---
+
+## Q4. Compliance vs Security
+
+* Compliance = checkbox
+* Security = real protection
+
+---
+
+## Q5. Policy change
+
+✔ Mandatory security training
+
+---
+
+# ✅ SCENARIO 9 – Risk Governance
+
+## Q1. Risk acceptance vs negligence
+
+* Acceptance: documented decision
+* Negligence: ignored risk
+
+---
+
+## Q2. Undocumented risks
+
+* No accountability
+* Legal exposure
+
+---
+
+## Q3. Governance risk
+
+* Audit failure
+* Reputational damage
+
+---
+
+## Q4. Risk framework
+
+1. Identify
+2. Assess
+3. Document
+4. Approve
+5. Review
+
+---
+
+## Q5. Transparency
+
+* Improves trust
+* Enables proactive defense
+
+---
+
+# ✅ SCENARIO 10 – Nmap Assessment
+
+## Q1. Why Nmap isn’t an attack
+
+* Observational
+* Improves decision-making
+
+---
+
+## Q2. Essential vs violation
+
+* Common ports → expected
+* Unusual services → policy violation
+
+---
+
+## Q3. Risk of open ports
+
+* Increases attack surface
+* Enables fingerprinting
+
+---
+
+## Q4. Version detection value
+
+* Helps prioritize patching
+* Identifies legacy software
+
+---
+
+# ✅ SCENARIO 11 – iptables Rules
+
+```bash
+iptables -A INPUT -p tcp -s 192.168.1.0/24 --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -P INPUT DROP
+```
+
+---
+
+# ✅ SCENARIO 12 – ARP Poisoning
+
+## Q1. MITM explanation
+
+* Attacker sends fake ARP replies
+* Becomes traffic intermediary
+* No connectivity loss
+
+---
+
+## Q2. HTTPS limitation
+
+* Encryption protects data
+* ARP still redirects traffic
+
+---
+
+# ✅ SCENARIO 13 – Linux Firewall Basics
+
+## Q1. Why firewall?
+
+* Controls access
+* Reduces attack surface
+
+---
+
+## Q2. Default policy
+
+```bash
+iptables -P INPUT DROP
+```
+
+---
+
+## Q3. Allow SSH
+
+```bash
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+```
+
+---
+
+## Q4. Allow established
+
+* Prevents session break
+
+---
+
+## Q5. Allow all incoming?
+
+❌ System exposed to attacks
+
+---
+
+## ✅ FINAL NOTE
+
+If you want, I can:
+
+* Convert this into **proper MS Word formatting**
+* Add **screenshots checklist**
+* Create **PoC command sections**
+* Reduce to **10-question selection**
+
+Just tell me 💙
