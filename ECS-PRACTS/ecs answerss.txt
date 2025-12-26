@@ -1,3 +1,132 @@
+Senerio 1 : 
+
+Scenario 1 – Windows 10 Security Investigation and Hardening
+
+A Windows 10 workstation shows: system slowdown, unknown services, disabled automatic updates, and sensitive files accessible by non-admin users. The task is to investigate, secure, and harden the system without reinstalling the OS.
+
+Q1. Identify two suspicious processes or services and how they are identified
+
+Tools: Task Manager, PowerShell, Get-Process, Get-Service, sc query
+
+Steps / Commands:
+
+Get-Process | Select Name,Id,Path
+Get-Service | Where-Object {$_.Status -eq "Running"}
+
+
+Suspicious process/service examples:
+
+unknownservice.exe running from C:\Users\Public\ – unusual location for a system service.
+
+A service with random alphanumeric name starting automatically – could indicate malware persistence.
+
+Reasoning:
+
+Running from unusual paths
+
+Auto-start services not matching standard Windows services
+
+Consumes high CPU/memory without user activity
+
+These characteristics make them suspicious and worth investigation.
+
+Q2. Check if the system is fully patched
+
+Commands / Steps:
+
+Get-HotFix
+Get-Service wuauserv
+usoclient StartScan
+
+
+How to identify missing updates:
+
+Get-HotFix lists installed updates. Compare with latest Microsoft updates.
+
+Disabled wuauserv indicates automatic updates are off → missing patches likely.
+
+Security risk if not patched:
+
+Vulnerable to exploits, ransomware, malware
+
+System compromise due to known CVEs
+
+Unauthorized access to sensitive data
+
+Q3. Examine NTFS permissions on a sensitive folder
+
+Example folder: C:\anyfolder
+
+View permissions:
+
+icacls C:\anyfolder
+
+
+Misconfigurations:
+
+Users or Everyone group has Full Control
+
+Sensitive files accessible to non-admins
+
+Corrected permissions:
+
+icacls C:\anyfolder /remove Users
+icacls C:\anyfolder /remove Everyone
+icacls C:\anyfolder /grant Administrators:F
+icacls C:\anyfolder /grant SYSTEM:F
+icacls C:\anyfolder /grant "Authorized Users":R
+
+Q4. Verify whether BitLocker is enabled
+
+Check status:
+
+manage-bde -status
+
+
+Enable BitLocker if disabled:
+
+manage-bde -on C:
+
+
+Importance:
+
+Encrypts entire drive
+
+Protects sensitive data if device is lost or stolen
+
+Prevents unauthorized access to confidential files
+
+Q5. Apply one Local Group Policy to improve system security
+
+Example: Enforce Strong Password Policy
+
+Steps:
+
+Run gpedit.msc
+
+Navigate:
+
+Computer Configuration → Windows Settings → Security Settings → Account Policies → Password Policy
+
+
+Set:
+
+Minimum password length: 8–12 characters
+
+Password complexity: Enabled
+
+Maximum password age: 60–90 days
+
+Justification:
+
+Reduces risk of brute-force attacks
+
+Enforces strong authentication for all users
+
+Improves overall system security without disrupting operations
+
+
+
 Senerio 2:
 
 Q1. Identify services starting automatically at boot
@@ -369,5 +498,6 @@ iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
 
 
 ✅ Firewall allows only SSH, blocks all other incoming traffic, allows normal outgoing traffic.
+
 
 
